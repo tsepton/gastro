@@ -1,0 +1,5 @@
+.scalafmt.conf
+.bsp/*
+project/*
+target/*
+.metals/metals.lock.db
