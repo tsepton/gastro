@@ -18,28 +18,31 @@ object Main {
         item_1.calories < item_2.calories
       )
 
+    // Uncomment me to check products
     // products.foreach(product => println(product))
 
-    val human = GastroUser.get_sex
-    val meal = GastroUser.get_meal
+    val person: Human = GastroUser.get_sex
+    val meal: Meal = GastroUser.get_meal
 
-    val menu_composer = new MenuComposer(products, human, meal)
+    val menu_composer: MenuComposer = new MenuComposer(products, person, meal)
     menu_composer.compose
   }
 }
 
-// Here we will define traits and case classes
+// Here we will define traits
+// ------------------------------------------------------------------------
 trait Human {
   def sex: String
   def maximum_calories: Int // for a day
 }
 
-// Here we will define traits and case classes
 trait Meal {
   def kind: String
 }
 
-class MenuComposer(products: List[Product], human: Human, meal: Meal) {
+// Here we will define classes and case classes
+// ------------------------------------------------------------------------
+class MenuComposer(products: List[Product], person: Human, meal: Meal) {
   // We have a currying function here TODO
   private def matching_products(
       min_energy: Int,
@@ -60,7 +63,7 @@ class MenuComposer(products: List[Product], human: Human, meal: Meal) {
 
   private def not_so_random_products: List[Product] = {
     // For comprehension used here
-    val max = GastroUser.calculate_max_calories_per_meal(meal, human)
+    val max: Double = GastroUser.calculate_max_calories_per_meal(meal, person)
     val products: List[Product] = (for { i <- 1 to 3 } yield random_product(
       matching_products(0, max.toInt)
     )).toList
@@ -76,10 +79,10 @@ class MenuComposer(products: List[Product], human: Human, meal: Meal) {
     println
 
     val temp_1: String =
-      s"As a ${human.sex.toLowerCase}, for a ${meal.kind.toLowerCase},"
+      s"As a ${person.sex.toLowerCase}, for a ${meal.kind.toLowerCase},"
     val temp_2: String =
-      s" you should limit yourself to ${GastroUser.calculate_max_calories_per_meal(meal, human).toInt} calories."
-    println(temp_1 + temp_2)
+      s" you should limit yourself to ${GastroUser.calculate_max_calories_per_meal(meal, person).toInt} calories."
+    println(s"$temp_1 $temp_2")
 
     println("Selected products are...")
     val corresponding_products: List[Product] = not_so_random_products
@@ -90,7 +93,9 @@ class MenuComposer(products: List[Product], human: Human, meal: Meal) {
       s"Total amount of calories for the dish : ${total_calories(corresponding_products).toInt}."
     )
 
-    scala.io.StdIn.readLine("Would you like another menu ? [Yes/no] ") match {
+    Utils.format_str(
+      scala.io.StdIn.readLine("Would you like another menu ? [Yes/no] ")
+    ) match {
       case "no" => ()
       case _    => compose
     }
@@ -122,16 +127,26 @@ case class Dinner() extends Meal {
 }
 
 class Product(id: Int, name: String, energy: Int) {
-  override def toString = s"$id | $energy | $name"
+  override def toString: String = s"$id | $energy | $name"
 
   def calories: Int = energy
+}
+
+// Singletons will be defined here
+// ------------------------------------------------------------------------
+object Utils {
+  // Removes new lines & extra white space at the end and start of lines
+  def format_str(str: String): String = {
+    str.split('\n').mkString.trim
+  }
 }
 
 // We will define a singleton with a few methods so we can get the sex and the type of meal recursively
 object GastroUser {
   def get_sex: Human = {
-    val input = scala.io.StdIn.readLine("Is the meal for a woman or a man ? ")
-    input.toLowerCase() match {
+    val input: String =
+      scala.io.StdIn.readLine("Is the meal for a woman or a man ? ")
+    Utils.format_str(input.toLowerCase) match {
       case "woman" => Woman()
       case "man"   => Man()
       case _       => get_sex
@@ -139,10 +154,10 @@ object GastroUser {
   }
 
   def get_meal: Meal = {
-    val input = scala.io.StdIn.readLine(
+    val input: String = scala.io.StdIn.readLine(
       "What kind of meal is desired ? [breakfast/lunch/dinner] "
     )
-    input.toLowerCase() match {
+    Utils.format_str(input.toLowerCase) match {
       case "breakfast" => Breakfast()
       case "lunch"     => Lunch()
       case "dinner"    => Dinner()
@@ -150,12 +165,12 @@ object GastroUser {
     }
   }
 
-  def calculate_max_calories_per_meal(meal: Meal, human: Human): Double = {
+  def calculate_max_calories_per_meal(meal: Meal, person: Human): Double = {
     // The case classes are used for pattern matching here
     meal match {
       // This is based on the "1/6, 1/4, 1/4" rule
-      case Breakfast() => (1.0 / 6) * human.maximum_calories
-      case _           => (1.0 / 4) * human.maximum_calories
+      case Breakfast() => (1.0 / 6) * person.maximum_calories
+      case _           => (1.0 / 4) * person.maximum_calories
     }
   }
 }
