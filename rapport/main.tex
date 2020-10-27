@@ -1,0 +1,20 @@
+\documentclass[12pt]{article}
+
+%-----------------------------------------------------------------
+\input{miscellaneous/imports}               %all imported packages
+\input{miscellaneous/commands}              %define new commands here
+\input{miscellaneous/work_information}      %define your name and other work related information here
+\input{miscellaneous/colours_scheme}        
+%-----------------------------------------------------------------
+\begin{document}
+% ----------------------------------------------------------------
+\input{front_page/cover}
+
+\renewcommand{\contentsname}{Table des matières}
+\tableofcontents
+% work parts
+\input{parts/intro}
+\input{parts/corps}
+\input{parts/diff}
+
+\end{document}
