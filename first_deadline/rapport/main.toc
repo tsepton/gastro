@@ -1,0 +1,5 @@
+\contentsline {section}{Introduction}{2}%
+\contentsline {section}{Les différentes parties}{2}%
+\contentsline {subsection}{Les entrées utilisateurs}{3}%
+\contentsline {subsection}{L'algorithme de composition}{3}%
+\contentsline {section}{Difficultés et remarques}{4}%

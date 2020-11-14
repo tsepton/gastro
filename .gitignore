@@ -1,5 +1,7 @@
 .scalafmt.conf
 .bsp/*
-project/*
-target/*
+project/
+target/
 .metals/*
+.vscode/
+build.properties
