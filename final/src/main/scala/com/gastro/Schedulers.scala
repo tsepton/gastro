@@ -16,13 +16,15 @@ import scala.util.{Success, Failure, Random, Try}
 import scala.concurrent.{Await, ExecutionContext, Future, Promise}
 import akka.event.LoggingAdapter
 
+import akka.actor._
+
 /*
  * This is the main program which will coordinate all the actors
  * so they can work together.
  */
 
 class Waiter(coq: ActorRef) extends Actor {
-  implicit val timeout = Timeout(5 seconds) // needed for `?` below
+  implicit val timeout = Timeout(5 seconds) // needed for ?
   implicit val ec: scala.concurrent.ExecutionContext =
     scala.concurrent.ExecutionContext.global
 
@@ -30,14 +32,16 @@ class Waiter(coq: ActorRef) extends Actor {
   var commands_id: Int = 0
 
   override def receive: Receive = {
-    case meal: Meal       => bring_the_dish(meal)
-    case "Meal request"   => tell_the_kitchen(get_order)
+    case "Meal request"   => coq ! get_order //tell_the_kitchen(get_order)
     case "Under pressure" => emergency_training
-    case _ =>
-      println("I'm sorry but your meal has been lost on the way")
+    case meal: Meal       => bring_the_dish(meal)
+    case s: String        => println(s)
+    case _                => println("I'm sorry but your meal has been lost on the way")
   }
 
+  // Unused right now: waiter is being killed after response... WHY ?!
   private def tell_the_kitchen(order: Meal): Unit = {
+    // Fixme
     coq ? order onComplete {
       case Success(answer: String) => println(answer)
       case _ =>
@@ -78,16 +82,22 @@ class Waiter(coq: ActorRef) extends Actor {
   }
 
   private def emergency_training(): Unit = {
-    for (meal <- loads_of_meal) {
-      tell_the_kitchen(meal)
+    // TODO : Handle wrong input
+    for (
+      meal <- loads_of_meal(
+        scala.io.StdIn.readLine("How many commands should we operate ? ") toInt
+      )
+    ) {
+      //tell_the_kitchen(meal)
+      coq ! meal
     }
   }
 
-  private def loads_of_meal(): List[Meal] = {
+  private def loads_of_meal(number: Int): List[Meal] = {
     val sex: List[String] = List("man", "woman")
     val meal_kind: List[String] = List("breakfast", "lunch", "dinner")
     (for (
-      i <- 1 to 100;
+      i <- 1 to number;
       person: Human = Random.shuffle(sex).head match {
         case "man"   => new Man
         case "woman" => new Woman
@@ -119,14 +129,10 @@ class Coq(intendant: ActorRef, dispensers: List[ActorRef]) extends Actor {
   override def receive: Receive = {
     case meal: Meal => {
       waiter = sender
-      println(waiter)
       waiter ! s"The command n°${meal.command_number} is being prepared"
       cook(meal)
     }
-    case _ =>
-      println(
-        "Chef : Waiter, this isn't on the menu !"
-      )
+    case _ => println("Chef : Waiter, this isn't on the menu !")
   }
 
   // This is the function that does all the magic,
@@ -141,7 +147,7 @@ class Coq(intendant: ActorRef, dispensers: List[ActorRef]) extends Actor {
             set_other_ingredients(meal).future onComplete {
               case Success(_) => finish_and_send(meal)
               case Failure(_) =>
-                println("Chef 1: What do you want me to do with this !?")
+                println("Chef: What do you want me to do with this !?")
             }
           }
         }
@@ -162,7 +168,7 @@ class Coq(intendant: ActorRef, dispensers: List[ActorRef]) extends Actor {
         promise success "Main ingredient set"
       }
       case _ => {
-        println("Chef 2: What do you want me to do with this !?")
+        println("Chef: What do you want me to do with this !?")
         promise failure (new IllegalStateException)
       }
     }
@@ -194,7 +200,7 @@ class Coq(intendant: ActorRef, dispensers: List[ActorRef]) extends Actor {
           }
         }
         case _ => {
-          println("Chef 3: What do you want me to do with this !?")
+          println("Chef: What do you want me to do with this !?")
           // promise failure (new IllegalStateException)
         }
       }
@@ -222,9 +228,6 @@ class Coq(intendant: ActorRef, dispensers: List[ActorRef]) extends Actor {
       case Success(QuantityMap(quantities)) => {
         for (ingredient <- meal.get_ingredients)
           meal.set_quantity(ingredient.id, quantities(ingredient.id))
-        println("\nEn fait le plat il est bien là\n")
-        println(waiter)
-        println()
         waiter ! meal
       }
       case _ => println("Chef: Please excuse us, we've lost our stock...")

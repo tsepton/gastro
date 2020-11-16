@@ -40,7 +40,20 @@ object Main {
     )
     val waiter = system.actorOf(Props(classOf[Waiter], coq), "waiter")
 
-    waiter ! "Meal request"
-    // waiter ! "Under pressure"
+    handle_input match {
+      case "1" => waiter ! "Meal request"
+      case "2" =>
+        waiter ! "Under pressure"
+      case _ => handle_input
+    }
+  }
+
+  def handle_input: String = {
+    scala.io.StdIn.readLine(
+      "What do you want to do ?\n"
+        + "\t[1] Test personnal input\n"
+        + "\t[2] Simulate multiple commands at a time\n"
+        + "Answer : "
+    )
   }
 }
