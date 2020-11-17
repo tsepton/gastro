@@ -214,15 +214,29 @@ class Coq(intendant: ActorRef, dispensers: List[ActorRef]) extends Actor {
       meal: Meal,
       ingredients: List[Product]
   ): Try[List[Product]] = {
-    // TODO : Choose few products based on something...
-    // Using Try here, in case list is empty
-    Try {
-      List(
-        Random.shuffle(ingredients).head,
-        Random.shuffle(ingredients).head,
-        Random.shuffle(ingredients).head
-      )
-    }
+    // slice higher order function used here & anonymous function too
+    val max: Double = meal.getMaximumCalories
+    val products: List[Product] = Random
+      .shuffle(matchingProducts(ingredients, 0, max.toInt))
+      .slice(0, 3)
+
+    if (totalCalories(products) > max)
+      pickIngredients(meal, ingredients)
+    Try(products)
+  }
+
+  private def matchingProducts(
+      ingredients: List[Product],
+      minEnergy: Int,
+      maxEnergy: Int
+  ): List[Product] = {
+    // Here we use the higher order method filter
+    ingredients.filter(minEnergy < _.energy).filter(_.energy < maxEnergy)
+  }
+
+  private def totalCalories(ls: List[Product]): Double = {
+    // forEach higher order function used here & anonymous function too
+    ls.map(_.energy).foldRight(0.0)(_ + _)
   }
 
   private def finishAndSend(meal: Meal): Unit = {
@@ -257,7 +271,6 @@ class Intendant(products: List[Product], portions: Map[Int, String])
     (for {
       product <- ingredients
       quantity = getProductQuantity(product).getOrElse("")
-      if (quantity != None)
     } yield (product.id -> quantity)) toMap
   }
 

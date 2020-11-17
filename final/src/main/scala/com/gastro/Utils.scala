@@ -5,15 +5,28 @@ import gastro.Menu._
 import scala.util.{Try, Failure, Success}
 
 object Utils {
+  private def checkForValue(option: Try[Any]) = {
+    option match {
+      case Success(value) => value
+      case Failure(e)     => 0.0
+    }
+  }
+
   def extractProducts(path: String): List[Product] = {
     (for {
       line <- Source.fromFile(path).getLines.drop(1)
       cols = line.split(";")
+      energy = Try(cols(4).toInt)
+      fat = Try(cols(10).toFloat)
+      sugar = Try(cols(7).toFloat)
+      protein = Try(cols(5).toFloat)
     } yield new Product(
       cols(0).toInt,
       cols(1),
-      cols(4).toInt,
-      cols(10).toFloat
+      checkForValue(protein).asInstanceOf[Float],
+      checkForValue(fat).asInstanceOf[Float],
+      checkForValue(sugar).asInstanceOf[Float],
+      checkForValue(protein).asInstanceOf[Float]
     )).toList
   }
 
@@ -21,10 +34,8 @@ object Utils {
     str.split('\n').mkString.trim
   }
 
-  // Fonctions  Try, for, trim
+  // Methods  Try, for, trim
   def extractPortions(path: String): Try[Map[Int, String]] = {
-    // If there is multiple ids the same,
-    // the map will remove them and keep the last entry
     Try((for {
       line <- Source.fromFile(path).getLines().drop(1)
       cols = line.split(";").map(_.trim)

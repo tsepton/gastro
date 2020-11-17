@@ -15,8 +15,8 @@ object Main {
       .extractProducts("src/Products.csv")
       // A higher order method is invoked (sortWith)
       // An anonymous function is called inside sortWith
-      .sortWith((item_1: Product, item_2: Product) =>
-        item_1.calories < item_2.calories
+      .sortWith((item1: Product, item2: Product) =>
+        item1.energy < item2.energy
       )
 
     val portions: Map[Int, String] =

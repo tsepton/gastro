@@ -6,38 +6,40 @@ import akka.actor.{Actor}
 
 abstract class Dispenser(products: List[Product]) extends Actor {}
 
-//TODO
 class FatDispenser(products: List[Product]) extends Dispenser(products) {
 
   override def receive: Actor.Receive = {
     case Meal(_, _) => sender() ! (new ProductList(fatProducts))
   }
 
+  // 9.15 is the mean for all products
   private def fatProducts: List[Product] = {
-    for (ingredient <- products if ingredient.fat > 3.6) yield ingredient
+    // This is where I translated a for comprehension into its equivalent form
+    products filter (_.fat >= 9.15) map (ingredient => ingredient)
+    // for (ingredient <- products if ingredient.fat >= 9.15) yield ingredient
   }
 }
 
-//TODO
 class SugarDispenser(products: List[Product]) extends Dispenser(products) {
 
   override def receive: Actor.Receive = {
-    case Meal(_, _) => sender ! (new ProductList(fatProducts))
+    case Meal(_, _) => sender ! (new ProductList(sugaryProducts))
   }
 
-  private def fatProducts: List[Product] = {
-    for (ingredient <- products if ingredient.fat > 3.6) yield ingredient
+  // 227g of sugar is the mean for all products
+  private def sugaryProducts: List[Product] = {
+    for (ingredient <- products if ingredient.sugar >= 227) yield ingredient
   }
 }
 
-//TODO
 class ProteinDispenser(products: List[Product]) extends Dispenser(products) {
 
   override def receive: Actor.Receive = {
-    case Meal(_, _) => sender() ! (new ProductList(fatProducts))
+    case Meal(_, _) => sender() ! (new ProductList(proteinProducts))
   }
 
-  private def fatProducts: List[Product] = {
-    for (ingredient <- products if ingredient.fat > 3.6) yield ingredient
+  //1377 is the mean for all products
+  private def proteinProducts: List[Product] = {
+    for (ingredient <- products if ingredient.protein >= 1377) yield ingredient
   }
 }

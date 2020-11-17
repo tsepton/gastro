@@ -30,6 +30,8 @@ case class Meal(customer: Human, commandNumber: Int) {
         ingredient.name,
         ingredient.energy,
         ingredient.fat,
+        ingredient.sugar,
+        ingredient.protein,
         quantity
       )
     } yield (new_ingredient)
@@ -55,14 +57,14 @@ case class Meal(customer: Human, commandNumber: Int) {
 case class Product(
     id: Int,
     name: String,
-    energy: Int,
+    energy: Float,
     fat: Float,
+    sugar: Float,
+    protein: Float,
     quantity: String = ""
 ) {
 
   override def toString: String = s"$id | $energy | $name"
-
-  def calories: Int = energy
 }
 
 // Case classes with inheritance
