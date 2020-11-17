@@ -17,7 +17,7 @@ object Utils {
     )).toList
   }
 
-  def format_str(str: String): String = {
+  def formatString(str: String): String = {
     str.split('\n').mkString.trim
   }
 

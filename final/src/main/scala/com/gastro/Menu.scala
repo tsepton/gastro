@@ -5,14 +5,14 @@ import scala.collection.mutable.ListBuffer
 case class Order(id: Int, meal: Meal)
 
 // Abstract class
-case class Meal(customer: Human, command_number: Int) {
+case class Meal(customer: Human, commandNumber: Int) {
   // Mutable scala collection ListBuffer
   var ingredients: ListBuffer[Product] = new ListBuffer
 
   def kind: String = "Meal"
 
   // Class Java pattern with setter & getter
-  def set_ingredients(products: List[Product]): Unit = {
+  def setIngredients(products: List[Product]): Unit = {
     // For comprehension
     val new_ingredients: List[Product] =
       (for (ingredient <- products if !ingredients.contains(ingredient))
@@ -20,14 +20,13 @@ case class Meal(customer: Human, command_number: Int) {
     ingredients = ingredients :++ new_ingredients
   }
 
-  // TODO
-  def set_quantity(productID: Int, quantity: Float): Unit = {
+  def setQuantity(productId: Int, quantity: Float): Unit = {
     // Defining a method on ingredient would have been more approriate
     // But list comprehension is lit
     ingredients = for {
       ingredient <- ingredients
       val new_ingredient = new Product(
-        productID,
+        productId,
         ingredient.name,
         ingredient.energy,
         ingredient.fat,
@@ -36,21 +35,21 @@ case class Meal(customer: Human, command_number: Int) {
     } yield (new_ingredient)
   }
 
-  def get_ingredients: List[Product] = {
+  def getIngredients: List[Product] = {
     ingredients.toList
   }
 
-  def get_maximum_calories: Double = {
+  def getMaximumCalories: Double = {
     // The case classes are used for pattern matching here
     kind match {
       // This is based on the "1/6, 1/4, 1/4" rule
-      case "Breakfast" => (1.0 / 6) * customer.calories_per_day
-      case _           => (1.0 / 4) * customer.calories_per_day
+      case "Breakfast" => (1.0 / 6) * customer.caloriesPerDay
+      case _           => (1.0 / 4) * customer.caloriesPerDay
     }
   }
 
   override def toString: String =
-    s"MEAL => Customer : ${customer.sex} | Number of ingredients (${get_ingredients.length})"
+    s"Meal => Customer : ${customer.sex} | Number of ingredients (${getIngredients.length})"
 }
 
 case class Product(
@@ -67,34 +66,34 @@ case class Product(
 }
 
 // Case classes with inheritance
-class Breakfast(customer: Human, command_number: Int)
-    extends Meal(customer, command_number) {
+class Breakfast(customer: Human, commandNumber: Int)
+    extends Meal(customer, commandNumber) {
   override def kind(): String = "Breakfast"
 }
 
-class Lunch(customer: Human, command_number: Int)
-    extends Meal(customer, command_number) {
+class Lunch(customer: Human, commandNumber: Int)
+    extends Meal(customer, commandNumber) {
   override def kind(): String = "Lunch"
 }
 
-class Dinner(customer: Human, command_number: Int)
-    extends Meal(customer, command_number) {
+class Dinner(customer: Human, commandNumber: Int)
+    extends Meal(customer, commandNumber) {
   override def kind(): String = "Dinner"
 }
 
 // Trait
 trait Human {
   def sex: String
-  def calories_per_day: Int // for a day
+  def caloriesPerDay: Int // for a day
   override def toString: String = s"Human is a $sex"
 }
 
 case class Woman() extends Human {
   override def sex(): String = "Woman"
-  override def calories_per_day(): Int = 2000
+  override def caloriesPerDay(): Int = 2000
 }
 
 case class Man() extends Human {
   override def sex(): String = "Man"
-  override def calories_per_day(): Int = 2500
+  override def caloriesPerDay(): Int = 2500
 }

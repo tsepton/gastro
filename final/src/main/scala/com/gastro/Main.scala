@@ -6,12 +6,13 @@ import gastro.Menu._
 import gastro.Utils._
 import gastro.Dispensers._
 import gastro.Scheduler._
+import akka.actor.ActorRef
 
 object Main {
   def main(args: Array[String]) {
-    val products_file: String = "src/Products.csv"
+    val productsFile: String = "src/Products.csv"
     val products: List[Product] = Utils
-      .extract_products(products_file)
+      .extract_products(productsFile)
       // A higher order method is invoked (sortWith)
       // An anonymous function is called inside sortWith
       .sortWith((item_1: Product, item_2: Product) =>
@@ -19,18 +20,18 @@ object Main {
       )
 
     // Init actors
-    val system = ActorSystem("system")
-    val intendant =
+    val system: ActorSystem = ActorSystem("system")
+    val intendant: ActorRef =
       system.actorOf(Props(classOf[Intendant], products), "intendant")
-    val fatDispenser =
+    val fatDispenser: ActorRef =
       system.actorOf(Props(classOf[FatDispenser], products), "fatDispenser")
-    val sugarDispenser =
+    val sugarDispenser: ActorRef =
       system.actorOf(Props(classOf[SugarDispenser], products), "sugarDispenser")
-    val proteinDispenser = system.actorOf(
+    val proteinDispenser: ActorRef = system.actorOf(
       Props(classOf[ProteinDispenser], products),
       "proteinDispenser"
     )
-    val coq = system.actorOf(
+    val coq: ActorRef = system.actorOf(
       Props(
         classOf[Coq],
         intendant,
@@ -38,22 +39,21 @@ object Main {
       ),
       "coq"
     )
-    val waiter = system.actorOf(Props(classOf[Waiter], coq), "waiter")
+    val waiter: ActorRef = system.actorOf(Props(classOf[Waiter], coq), "waiter")
 
-    handle_input match {
-      case "1" => waiter ! "Meal request"
-      case "2" =>
-        waiter ! "Under pressure"
-      case _ => handle_input
+    def handleInput: Unit = {
+      scala.io.StdIn.readLine(
+        "What do you want to do ?\n"
+          + "\t[1] Test personnal input\n"
+          + "\t[2] Simulate multiple commands at a time\n"
+          + "Answer : "
+      ) match {
+        case "1" => waiter ! "Meal request"
+        case "2" =>
+          waiter ! "Under pressure"
+        case _ => handleInput
+      }
     }
-  }
-
-  def handle_input: String = {
-    scala.io.StdIn.readLine(
-      "What do you want to do ?\n"
-        + "\t[1] Test personnal input\n"
-        + "\t[2] Simulate multiple commands at a time\n"
-        + "Answer : "
-    )
+    handleInput
   }
 }
