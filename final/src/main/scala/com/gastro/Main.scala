@@ -7,22 +7,28 @@ import gastro.Utils._
 import gastro.Dispensers._
 import gastro.Scheduler._
 import akka.actor.ActorRef
+import scala.util.{Success, Failure}
 
 object Main {
   def main(args: Array[String]) {
-    val productsFile: String = "src/Products.csv"
     val products: List[Product] = Utils
-      .extract_products(productsFile)
+      .extractProducts("src/Products.csv")
       // A higher order method is invoked (sortWith)
       // An anonymous function is called inside sortWith
       .sortWith((item_1: Product, item_2: Product) =>
         item_1.calories < item_2.calories
       )
 
+    val portions: Map[Int, String] =
+      Utils extractPortions ("src/Portions.csv") match {
+        case Success(map) => map
+        case Failure(e)   => Map()
+      }
+
     // Init actors
     val system: ActorSystem = ActorSystem("system")
     val intendant: ActorRef =
-      system.actorOf(Props(classOf[Intendant], products), "intendant")
+      system.actorOf(Props(classOf[Intendant], products, portions), "intendant")
     val fatDispenser: ActorRef =
       system.actorOf(Props(classOf[FatDispenser], products), "fatDispenser")
     val sugarDispenser: ActorRef =

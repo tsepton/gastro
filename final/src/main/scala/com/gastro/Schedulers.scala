@@ -24,7 +24,7 @@ import akka.actor._
  */
 
 class Waiter(coq: ActorRef) extends Actor {
-  implicit val timeout = Timeout(5 seconds) 
+  implicit val timeout = Timeout(5 seconds)
   implicit val ec: scala.concurrent.ExecutionContext =
     scala.concurrent.ExecutionContext.global
 
@@ -54,7 +54,7 @@ class Waiter(coq: ActorRef) extends Actor {
       scala.io.StdIn.readLine(
         "Waiter : Sorry but I'm blind, is the meal for a woman or a man ? "
       )
-    Utils formatString(input.toLowerCase) match {
+    Utils formatString (input.toLowerCase) match {
       case "woman" => Woman()
       case "man"   => Man()
       case _       => getSex
@@ -65,7 +65,7 @@ class Waiter(coq: ActorRef) extends Actor {
     val input: String = scala.io.StdIn.readLine(
       "Waiter : What kind of meal do you desire ? [breakfast/lunch/dinner] "
     )
-    Utils formatString(input.toLowerCase) match {
+    Utils formatString (input.toLowerCase) match {
       case "breakfast" => new Breakfast(getSex, getId)
       case "lunch"     => new Lunch(getSex, getId)
       case "dinner"    => new Dinner(getSex, getId)
@@ -77,7 +77,12 @@ class Waiter(coq: ActorRef) extends Actor {
     println(s"Here is the ${meal.kind} from command n°${meal.commandNumber} !")
     println("Here is the recipe...")
     for (ingredient <- meal.getIngredients)
-      println(s"\t${ingredient.name} ${ingredient.quantity}")
+      println(
+        s"\t${ingredient.name} " +
+          (if (ingredient.quantity != "")
+             s"with a portion weight specified as... ${ingredient.quantity}"
+           else "but no portion was specified...")
+      )
     println("I hope you'll like it and bon appétit !")
   }
 
@@ -115,7 +120,7 @@ class Waiter(coq: ActorRef) extends Actor {
 }
 
 class Coq(intendant: ActorRef, dispensers: List[ActorRef]) extends Actor {
-  implicit val timeout = Timeout(5 seconds) 
+  implicit val timeout = Timeout(5 seconds)
   implicit val ec: scala.concurrent.ExecutionContext =
     scala.concurrent.ExecutionContext.global
 
@@ -232,7 +237,8 @@ class Coq(intendant: ActorRef, dispensers: List[ActorRef]) extends Actor {
   }
 }
 
-class Intendant(products: List[Product]) extends Actor {
+class Intendant(products: List[Product], portions: Map[Int, String])
+    extends Actor {
   val log = Logging(context.system, this)
 
   def receive: Receive = {
@@ -246,15 +252,17 @@ class Intendant(products: List[Product]) extends Actor {
     Random.shuffle(products).head
   }
 
-  private def quantities(ingredients: List[Product]): Map[Int, Float] = {
+  private def quantities(ingredients: List[Product]): Map[Int, String] = {
+    // For comprehension
     (for {
       product <- ingredients
-      quantity = getProductQuantity(product)
+      quantity = getProductQuantity(product).getOrElse("")
+      if (quantity != None)
     } yield (product.id -> quantity)) toMap
   }
 
-  private def getProductQuantity(ingredient: Product): Float = {
-    // TODO
-    0.6 toFloat
+  private def getProductQuantity(ingredient: Product): Option[String] = {
+    // Using Option
+    portions get ingredient.id
   }
 }

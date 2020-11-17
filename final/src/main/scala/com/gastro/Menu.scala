@@ -20,7 +20,7 @@ case class Meal(customer: Human, commandNumber: Int) {
     ingredients = ingredients :++ new_ingredients
   }
 
-  def setQuantity(productId: Int, quantity: Float): Unit = {
+  def setQuantity(productId: Int, quantity: String): Unit = {
     // Defining a method on ingredient would have been more approriate
     // But list comprehension is lit
     ingredients = for {
@@ -57,7 +57,7 @@ case class Product(
     name: String,
     energy: Int,
     fat: Float,
-    quantity: Float = 0
+    quantity: String = ""
 ) {
 
   override def toString: String = s"$id | $energy | $name"
