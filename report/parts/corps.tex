@@ -1,15 +1,68 @@
-\section{Les différentes parties}
-Afin d'expliciter la logique de mon programme, je vous propose de suivre l'exécution de la méthode \textit{main}. 
-Nous commençons donc par charger les produits en mémoire, et nous en profitons pour les trier (ce qui n'a, pour cette échéance ci, aucun intérêt. Cependant, j'aime à croire que je pourrais améliorer la vitesse d'exécution de l'algorithme proposé sur base de ça pour la prochaine échéance. C'est, de plus, l'occasion d'utiliser une méthode de haut niveau ainsi qu'une fonction anonyme).
+\section{Logique}
+\subsection{Division}
+Afin de garder au maximum un code propre et lisible, 
+et ainsi d'éviter d'avoir un fichier de 1000 lignes, 
+j'ai décidé de le scinder en plusieurs parties. 
+Ainsi les différents packages sont : 
+\begin{itemize}
+    \item Main 
+    \item Menu (contient tout ce qui est relatif à un menu)
+    \item Waiter (est ce que vous avez appelé "master" au sein des consignes)
+    \item Coq 
+    \item Intendant 
+    \item Dispensers 
+\end{itemize}
 
-\subsection{Les entrées utilisateurs}
-Nous arrivons ensuite à la première partie du programme, à savoir, les informations provenant de l'utilisateur. Puisque nous cherchons à calculer la quantité de calories maximum que celui-ci doit ingérer par repas, nous devons donc savoir s'il s'agit d'un homme ou d'une femme, en plus du type de repas (déjeuner, diner ou souper), mais nous y reviendrons plus tard ; concentrons nous dans un premier temps sur le sexe de l'utilisateur. Pour ce faire, j'ai donc décidé de déclarer un \textit{Trait}, \textit{Human}, et de faire ainsi jouer l'héritage de Scala en déclarant deux classes implémentant ces traits (à savoir \textit{Man} et \textit{Woman}). La même logique fut utilisé pour le type de repas. 
+La logique respecte vos consignes, cependant, 
+afin de mieux schématiser la situation, j'ai réalisé le schéma de la figure 2.
 
-Sur bases de ces informations, nous pouvons obtenir la quantité de calories maximum par type de repas. Pour ce faire, je me suis basé sur une règle explicitant qu'il faille manger 1/6 des calories de la journée (2500 pour un homme, 2000 pour une femme) au matin, 1/4 lors du diner et 1/4 au souper (le \~ tier restant étant ingéré via les gourmandises et les boissons).  
+\subsection{Communication entre les acteurs}
+Je suis parti du principe que nous allions reconstituer un restaurant classique.
+Ainsi, nous avons le serveur (\textit{Waiter}) qui prend les commandes auprès des clients 
+(nous donc) et qui transmet ces commandes à la cuisine, c'est à dire au chef. 
+Ensuite le chef se charge de préparer chaque plat. C'est pourquoi nous avons la classe
+\textit{Meal}, qui représente, pour chaque commande, sa préparation en cuisine. 
+Le chef demande dans un premier temps un ingrédient de base à son intendant (\textit{Intendant}), 
+puis demande aux commis de cuisines (\textit{Dispensers}) de lui ramener des ingrédients 
+afin de compléter le plat. Toutes les communications entre le chef et ses délégués se font via une 
+demande \textit{ask} de Akka. Seuls les communication entre le chef et son serveur se font via 
+un \textit{tell}. 
 
-Maintenant que nous avons représenté le sexe et le type de repas, nous devons demander à l'utilisateur de nous indiquer ces informations. C'est pourquoi, en suivant la même nomenclature que le singleton déjà déclaré dans la \textit{code base} (\textit{GastroExtractor}), j'ai implémenté l'objet \textit{GastroUser}. Les méthodes récursives \textit{get\_sex} et \textit{get\_meal}, sur base de \textit{pattern matching}, nous permettent ainsi de récupérer ces informations.
- 
-\subsection{L'algorithme de composition}
-Une fois ces divers informations récupérées, nous pouvons maintenant nous atteler à la composition du menu. C'est pourquoi nous instancions la classe \textit{MenuComposer}. Dedans, nous retrouvons 4 méthodes privées en plus de la principale, à savoir \textit{compose}. Ici, nous indiquons à l'utilisateur la valeur maximum qu'il devrait respecter, puis nous lui indiquons un mélange de 3 ingrédients choisis via la méthode \textit{not\_so\_random\_products}. Cette dernière est très simple, elle ne fait que de choisir 3 produits aléatoirement, mais ne dépassant pas - individuellement - le maximum autorisé pour le repas. Si les 3 produits pris ensembles excédent le nombre maximum de calories autorisées, celle-ci se \textit{ré-appelle} elle même, autrement, elle aura pour valeur de retour ces trois produits choisis.
+\subsection{Améliorations de l'algorithme}
+L'algorithme de sélection d'ingrédients (décrit dans le premier rapport, 
+avec un système de calories et en fonction du type de repas et du sexe) n'est pas réellement 
+amélioré. En effet, je préférais réaliser une implémentation propre du système d'acteur 
+en gardant une architecture proche d'une cuisine plutôt que de m'attarder sur la sélection
+d'ingrédient puisque, selon moi, cette partie était moins 
+intéressante (de plus que je ne savais pas sur quoi me baser pour réaliser ma sélection d'ingrédients).
+Cependant, avec cette nouvelle implémentation, nous retrouverons dans les plats préparés, des ingrédients 
+contenant un minimum de sucre, de protéines et de gras tout en s'assurant que les calories totales ne sont 
+pas dépassées en fonction du repas (déjeuner, diner ou souper).
 
-Nous finissons par présenter les 3 produits à l'utilisateur et lui demandons s'il veut obtenir un autre résultat. A noter que je me suis permis de remplacer la boucle \textit{while} par une fonction récursive afin d'emprunter moins à la programmation déclarative.
+Concernant les quantités, le fichier \textit{.csv} n'était pas fort fourni. C'est la raison pour laquelle,
+si vous décidez de lancer 100 plats, vous n'aurez des quantités indiquées que pour très peu d'ingrédients (< 2\%).
+
+\subsection{Remarques}
+Je n'ai pas rédigé de commentaires (outre ceux indiquant les différentes
+utilisations des méthodes propre à scala demandés) puisque un code se doit d'être compréhensible en le lisant
+via les différents choix de nom de variables, de fonctions, etc.
+De plus, pour un code susceptible d'évoluer dans le temps, les commentaires ne sont que trop rarement 
+modifiés pour respecter ce qu'ils documentent.
+Ainsi, j'espère que vous apprécierez mon effort de rendre le code le plus lisible et compréhensible possible
+(j'ai nottament tenté de respecter les conventions de nommage propre à Scala).
+
+J'ai nottament implémenté un moyen simple de tester plusieurs commandes à la fois 
+(générées de façon aléatoire) afin de prouver que la coordination entre les différents acteurs 
+fonctionnent. Il vous suffira de taper 2 au premier input demandé par le programme.
+Pour avoir testé pour 25.000 plats à la fois, je n'ai pas relevé de problème. 
+Cependant, pour une raison que je ne parviens pas à comprendre, si vous demander trop de commande, 
+le chef commencera à recevoir de mauvaises réponses de la part de ses commis (sans pour autant crasher,
+puisque la gestion des erreurs se fait correctement).
+
+\vfill
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{parts/pics/diagram.png}
+    \caption{Diagramme de séquence}
+    \label{fig:my_label}
+\end{figure}

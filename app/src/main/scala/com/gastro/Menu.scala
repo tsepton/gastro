@@ -25,7 +25,7 @@ case class Meal(customer: Human, commandNumber: Int) {
     // But list comprehension is lit
     ingredients = for {
       ingredient <- ingredients
-      val new_ingredient = new Product(
+      new_ingredient = new Product(
         productId,
         ingredient.name,
         ingredient.energy,

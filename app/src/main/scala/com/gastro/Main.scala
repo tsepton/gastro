@@ -1,23 +1,24 @@
 package gastro.Main
 
 import akka.actor.{ActorSystem, Props}
+import akka.actor.ActorRef
+
+import scala.util.{Success, Failure}
 
 import gastro.Menu._
 import gastro.Utils._
 import gastro.Dispensers._
-import gastro.Scheduler._
-import akka.actor.ActorRef
-import scala.util.{Success, Failure}
+import gastro.Coq.Coq
+import gastro.Waiter.Waiter
+import gastro.Intendant.Intendant
 
 object Main {
-  def main(args: Array[String]) {
+  def main(args: Array[String]): Unit = {
     val products: List[Product] = Utils
       .extractProducts("src/Products.csv")
       // A higher order method is invoked (sortWith)
       // An anonymous function is called inside sortWith
-      .sortWith((item1: Product, item2: Product) =>
-        item1.energy < item2.energy
-      )
+      .sortWith((item1: Product, item2: Product) => item1.energy < item2.energy)
 
     val portions: Map[Int, String] =
       Utils extractPortions ("src/Portions.csv") match {
